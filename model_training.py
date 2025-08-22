@@ -6,7 +6,13 @@ from datasets import load_dataset
 import numpy as np
 import json
 import os
-
+from transformers import (
+    Autotokenizer, 
+    AutoModelForTokenClassification, 
+    TrainingArguments, 
+    Trainer, 
+    DataCollatorForTokenClassification
+)
 class FinancialNER:
 
     def __init__(self, model_name = "bert-base-uncased"):
@@ -44,6 +50,30 @@ class FinancialNER:
 
         return data
     
+
+    def tokenize_and_align_labels(self, examples):
+        
+        tokenized_inputs = self.tokenizer(
+            examples["tokens"],
+            truncation = True,
+            is_split_into_words = True,
+            max_length = self.max_length,
+            padding = True
+        )
+
+        labels = []
+        
+
+
+
+
+
+
+
+
+
+
+
 model_processor = FinancialNER()
 
 model_processor.load_data("finer139_processed.json")
