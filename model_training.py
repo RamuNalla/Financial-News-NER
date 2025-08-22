@@ -62,7 +62,33 @@ class FinancialNER:
         )
 
         labels = []
-        
+
+        for i, label in enumerate(examples["labels"]):
+            word_ids = tokenized_inputs.word_ids(batch_index = i)
+            previous_word_idx = None
+            label_ids = []
+
+            for word_idx in word_ids:
+                if word_idx is None:                # Special tokens
+                    label_ids.append(-100)
+                elif word_idx is not previous_word_idx:
+                    if word_idx < len(label):       # Firs
+                        label_ids.append(self.label2id[label[word_idx]])
+                    else:
+                        label_ids.append(self.label2id['0'])
+                else:
+                    label_ids.append(-100)          # Continuation of the word (subword)
+                
+                previous_word_idx = word_idx
+            
+            labels.append(label_ids)
+
+        tokenized_inputs["labels"] = labels
+        return tokenized_inputs  
+                    
+
+
+
 
 
 
