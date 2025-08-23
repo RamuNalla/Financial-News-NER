@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 
-from datasets import load_dataset
+from datasets import Dataset, load_dataset
 import numpy as np
 import json
 import os
@@ -85,6 +85,33 @@ class FinancialNER:
 
         tokenized_inputs["labels"] = labels
         return tokenized_inputs  
+
+
+    def prepare_datasets(self, data):
+
+        self.tokenizer = Autotokenizer.from_pretrained(self.model_name)
+        self.model = AutoModelForTokenClassification.from_pretrained(
+            self.model_name,
+            num_labels = len(self.label2id),
+            id2label = self.id2label,
+            label2id = self.label2id
+        )
+
+        def create_dataset(split_data):
+            return Dataset.from_dict({
+                "tokens": [example["tokens"] for example in split_data],
+                "labels": [example["labels"] for example in split_data]
+            })
+
+        train_dataset = create_dataset(data["train"])
+        test_dataset = create_dataset(data["test"])
+        val_dataset = create_dataset(data["validation"])
+
+        train_dataset = train_dataset.map(self.tokenize_and_align_labels, batched = True)
+        val_dataset = val_dataset.map(self.tokenize_and_align_labels, batched = True)
+        test_dataset = test_dataset.map(self.tokenize_and_align_labels, batched = True)
+
+        return train_dataset, val_dataset, test_dataset
                     
 
 
