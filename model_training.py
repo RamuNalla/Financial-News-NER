@@ -6,6 +6,7 @@ from datasets import Dataset, load_dataset
 import numpy as np
 import json
 import os
+from sklearn.metrics import classification_report, accuracy_score
 from transformers import (
     Autotokenizer, 
     AutoModelForTokenClassification, 
@@ -112,6 +113,32 @@ class FinancialNER:
         test_dataset = test_dataset.map(self.tokenize_and_align_labels, batched = True)
 
         return train_dataset, val_dataset, test_dataset
+
+    
+    def compute_metrics(self, eval_pred):                   # Compute evaluation metrics
+
+        predictions, labels = eval_pred
+        predictions = np.argmax(predictions, axis=2)
+
+        true_predictions = [
+            [self.id2label[p] for (p, l) in zip(predictions, label) if l != -100]
+            for prediction, label in zip(predictions, labels)
+        ]
+
+        true_labels = [
+            [self.id2label[l] for (p, l) in zip(predictions, label) if l != -100]
+            for prediction, label in zip(predictions, labels)
+        ]
+
+        flat_true_labels = [label for sublist in true_labels for label in sublist]
+        flat_predictions = [pred for sublist in true_predictions for pred in sublist]
+
+        accuracy = accuracy_score(flat_true_labels, flat_predictions)
+
+        return {
+            "accuracy": accuracy
+        }
+
                     
 
 
